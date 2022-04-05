@@ -1,4 +1,4 @@
-name: Automated PR Review
+name: Reviewbot
 description: "Automated PR Review for Graylog"
 branding:
   icon: "search"
