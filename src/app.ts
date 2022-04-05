@@ -33,6 +33,14 @@ async function lintDiff(baseSha: string, headSha: string, prefix: string): Promi
 const PR_REVIEW_BODY = 'Hey there! This is the automated PR review service. '
   + ' I have found some issues with the changes you made to JavaScript/TypeScript files.';
 
+function normalizeFilename(filename: string, prefix: string) {
+  const cwd = process.cwd();
+  const strippedFilename = filename.startsWith(cwd) ? filename.slice(cwd.length + 1) : filename;
+  return prefix !== ''
+    ? `${prefix}/${strippedFilename}`
+    : strippedFilename;
+}
+
 exports = (app: Probot) => {
   app.on(["pull_request.opened", "pull_request.synchronize"], async (context) => {
     const prefix = core.getInput('prefix', { required: true });
@@ -46,7 +54,7 @@ exports = (app: Probot) => {
     const filesWithErrors = results.filter(result => result.messages.length > 0);
     if (filesWithErrors.length > 0) {
       const comments = filesWithErrors.flatMap(file => file.messages.map(message => ({
-        path: `${prefix}/${file.filePath}`,
+        path: normalizeFilename(file.filePath, prefix),
         body: `${message.ruleId}: ${message.message}`,
         line: message.line
       })));
