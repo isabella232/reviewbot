@@ -3,13 +3,11 @@
  */
 import { Probot } from 'probot';
 
-module.exports = (app: Probot) => {
+exports = (app: Probot) => {
   app.log("Yay! The app was loaded!");
 
-  app.on("issues.opened", async (context) => {
-    return context.octokit.issues.createComment(
-      context.issue({ body: "Hello, World!" })
-    );
+  app.on("pull_request.opened", async (context) => {
+    return context.octokit.pulls.createReview();
   });
 };
 
