@@ -1,0 +1,12 @@
+name: Automated PR Review
+description: "Automated PR Review for Graylog"
+branding:
+  icon: "search"
+  color: green
+inputs:
+  prefix:
+    description: 'The prefix of the folder where JS/TS files are located'
+    required: true
+runs:
+  using: "node12"
+  main: "dist/index.js"
