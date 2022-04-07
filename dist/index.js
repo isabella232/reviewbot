@@ -100356,9 +100356,24 @@ function lintDiff(baseSha, headSha, prefix) {
 }
 const PR_REVIEW_BODY = 'Hey there! This is the automated PR review service. '
     + ' I have found some issues with the changes you made to JavaScript/TypeScript files.';
-function normalizeFilename(filename) {
-    return path_1.default.relative(process.cwd(), filename);
-}
+const normalizeFilename = (filename) => path_1.default.relative(process.cwd(), filename);
+const makeRuleNameWithUrl = (ruleName, url) => `[${ruleName}](${url})`;
+const formatRuleName = (ruleName) => {
+    const splittedRuleName = ruleName.split('/');
+    if (splittedRuleName.length === 1) {
+        makeRuleNameWithUrl(ruleName, `https://eslint.org/docs/rules/${ruleName}`);
+    }
+    const [domain, ruleId] = splittedRuleName;
+    switch (domain) {
+        case 'jest':
+            return makeRuleNameWithUrl(ruleId, `https://github.com/jest-community/eslint-plugin-jest/blob/main/docs/rules/${ruleId}.md`);
+        case 'testing-library':
+            return makeRuleNameWithUrl(ruleId, `https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/${ruleId}.md`);
+        case '@typescript-eslint':
+            return makeRuleNameWithUrl(ruleId, `https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/docs/rules/${ruleId}.md`);
+    }
+    return ruleName;
+};
 module.exports = (app) => {
     app.on(["pull_request.opened", "pull_request.synchronize"], (context) => __awaiter(void 0, void 0, void 0, function* () {
         const prefix = core.getInput('prefix', { required: true });
@@ -100373,7 +100388,7 @@ module.exports = (app) => {
         if (filesWithErrors.length > 0) {
             const comments = filesWithErrors.flatMap(file => file.messages.map(message => ({
                 path: normalizeFilename(file.filePath),
-                body: `${message.ruleId}: ${message.message}`,
+                body: `${formatRuleName(message.ruleId)}: ${message.message}`,
                 line: message.line
             })));
             return context.octokit.pulls.createReview({

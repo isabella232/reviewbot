@@ -37,8 +37,27 @@ async function lintDiff(baseSha: string, headSha: string, prefix: string): Promi
 const PR_REVIEW_BODY = 'Hey there! This is the automated PR review service. '
   + ' I have found some issues with the changes you made to JavaScript/TypeScript files.';
 
-function normalizeFilename(filename: string) {
-  return path.relative(process.cwd(), filename);
+const normalizeFilename = (filename: string) => path.relative(process.cwd(), filename);
+
+const makeRuleNameWithUrl = (ruleName: string, url: string) => `[${ruleName}](${url})`;
+
+const formatRuleName = (ruleName: string) => {
+  const splittedRuleName = ruleName.split('/');
+  if (splittedRuleName.length === 1) {
+    makeRuleNameWithUrl(ruleName, `https://eslint.org/docs/rules/${ruleName}`);
+  }
+
+  const [domain, ruleId] = splittedRuleName;
+  switch (domain) {
+    case 'jest':
+      return makeRuleNameWithUrl(ruleId, `https://github.com/jest-community/eslint-plugin-jest/blob/main/docs/rules/${ruleId}.md`);
+    case 'testing-library': 
+      return makeRuleNameWithUrl(ruleId, `https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/${ruleId}.md`);
+    case '@typescript-eslint':
+      return makeRuleNameWithUrl(ruleId, `https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/docs/rules/${ruleId}.md`);
+  }
+
+  return ruleName;
 }
 
 module.exports = (app: Probot) => {
@@ -55,7 +74,7 @@ module.exports = (app: Probot) => {
     if (filesWithErrors.length > 0) {
       const comments = filesWithErrors.flatMap(file => file.messages.map(message => ({
         path: normalizeFilename(file.filePath),
-        body: `${message.ruleId}: ${message.message}`,
+        body: `${formatRuleName(message.ruleId)}: ${message.message}`,
         line: message.line
       })));
       return context.octokit.pulls.createReview({
