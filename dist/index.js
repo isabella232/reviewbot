@@ -100338,7 +100338,7 @@ const core = __importStar(__nccwpck_require__(42186));
 const child_process_1 = __nccwpck_require__(32081);
 function exec(command) {
     return __awaiter(this, void 0, void 0, function* () {
-        return new Promise(resolve => (0, child_process_1.exec)(command, (error, stdout, stderr) => resolve(stdout)));
+        return new Promise((resolve, reject) => (0, child_process_1.exec)(command, (error, stdout, stderr) => error ? reject(stderr) : resolve(stdout)));
     });
 }
 function lintDiff(baseSha, headSha, prefix) {

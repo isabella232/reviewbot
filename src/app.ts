@@ -22,7 +22,7 @@ type File = {
 }
 
 async function exec(command: string) {
-  return new Promise<string>(resolve => childExec(command, (error, stdout, stderr) => resolve(stdout)));
+  return new Promise<string>((resolve, reject) => childExec(command, (error, stdout, stderr) => error ? reject(stderr) : resolve(stdout)));
 }
 
 async function lintDiff(baseSha: string, headSha: string, prefix: string): Promise<Array<File>> {
