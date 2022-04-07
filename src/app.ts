@@ -73,14 +73,19 @@ module.exports = (app: Probot) => {
 
     if (totalErrors > 0) {
       core.warning(`Found ${totalErrors} linter hints in the changed code.`);
-      const errors = filesWithErrors.flatMap(file => file.messages.map(message => ({
-        file: normalizeFilename(file.filePath),
-        title: `${formatRuleName(message.ruleId)}: ${message.message}`,
-        startLine: message.line,
-        startColumn: message.column,
-        endLine: message.endLine,
-        endColumn: message.endColumn,
-      }))).forEach(error => core.error(error.title, error));
+      const comments = filesWithErrors.flatMap(file => file.messages.map(message => ({
+        path: normalizeFilename(file.filePath),
+        body: `${formatRuleName(message.ruleId)}: ${message.message}`,
+        line: message.line
+      })));
+      return context.octokit.pulls.createReview({
+        owner,
+        repo,
+        pull_number,
+        comments,
+        body: PR_REVIEW_BODY,
+        event: 'REQUEST_CHANGES',
+      });
     } else {
       const { data: reviews } = await context.octokit.pulls.listReviews({ repo, pull_number, owner });
       core.info('PR Reviews: ' + JSON.stringify(reviews, null, 2));
