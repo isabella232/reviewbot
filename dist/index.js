@@ -100348,9 +100348,7 @@ function exec(command) {
 function lintDiff(baseSha, headSha, prefix) {
     return __awaiter(this, void 0, void 0, function* () {
         const cmd = `cd ./${prefix}; git diff --name-only --diff-filter=ACMR ${baseSha}..${headSha} | grep -E '^${prefix}/(.*).[jt]s(x)?$'|sed 's,^${prefix}/,,'|xargs yarn -s eslint -f json`;
-        core.info(`Executing command: ${cmd}`);
         const result = yield exec(cmd);
-        core.info(`Linter result is: ${result}`);
         return JSON.parse(result);
     });
 }
