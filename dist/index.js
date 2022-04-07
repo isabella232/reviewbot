@@ -100342,9 +100342,7 @@ const child_process_1 = __nccwpck_require__(32081);
 const path_1 = __importDefault(__nccwpck_require__(71017));
 function exec(command) {
     return __awaiter(this, void 0, void 0, function* () {
-        return new Promise((resolve, reject) => (0, child_process_1.exec)(command, (error, stdout, stderr) => error
-            ? reject(`Command execution failed: ${stderr}`)
-            : resolve(stdout)));
+        return new Promise((resolve) => (0, child_process_1.exec)(command, (error, stdout, stderr) => resolve(stdout)));
     });
 }
 function lintDiff(baseSha, headSha, prefix) {
