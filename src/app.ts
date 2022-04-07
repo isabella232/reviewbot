@@ -26,7 +26,8 @@ async function exec(command: string) {
 }
 
 async function lintDiff(baseSha: string, headSha: string, prefix: string): Promise<Array<File>> {
-  const result = await exec(`git diff --name-only --diff-filter=ACMR ${baseSha}..${headSha} | grep -E '^${prefix}/(.*).[jt]s(x)?$'|sed 's,^${prefix}/,,'|xargs yarn -s eslint -f json`)
+  const result = await exec(`git diff --name-only --diff-filter=ACMR ${baseSha}..${headSha} | grep -E '^${prefix}/(.*).[jt]s(x)?$'|sed 's,^${prefix}/,,'|xargs yarn -s eslint -f json`);
+  core.info(`Linter result is: ${result}`);
   return JSON.parse(result) as Array<File>;
 }
 
