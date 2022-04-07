@@ -71,25 +71,37 @@ module.exports = (app: Probot) => {
     const filesWithErrors = results.filter(result => result.messages.length > 0);
     const totalErrors = filesWithErrors.map(file => file.messages.length).reduce((prev, cur) => prev + cur, 0);
 
+    const { data: reviews } = await context.octokit.pulls.listReviews({ repo, pull_number, owner });
+    const prReviewsFromMe = reviews.filter(review => review.body === PR_REVIEW_BODY);
+    const containsReviewFromMe = prReviewsFromMe.length > 0;
+
     if (totalErrors > 0) {
       core.warning(`Found ${totalErrors} linter hints in the changed code.`);
+
+      const { data: reviewComments } = await context.octokit.pulls.listReviewComments({ repo, pull_number, owner });
+      const myReviewComments = reviewComments.filter(reviewComment => reviewComment.user.login === "github-actions[bot]");
+      
       const comments = filesWithErrors.flatMap(file => file.messages.map(message => ({
         path: normalizeFilename(file.filePath),
         body: `${formatRuleName(message.ruleId)}: ${message.message}`,
         line: message.line
       })));
-      return context.octokit.pulls.createReview({
-        owner,
-        repo,
-        pull_number,
-        comments,
-        body: PR_REVIEW_BODY,
-        event: 'REQUEST_CHANGES',
-      });
+      const newComments = comments.filter(comment => myReviewComments
+        .find(reviewComment => comment.body === reviewComment.body
+          && comment.line === reviewComment.line
+          && comment.path === reviewComment.path) === undefined);
+          
+      if (newComments.length > 0) {
+        return context.octokit.pulls.createReview({
+          owner,
+          repo,
+          pull_number,
+          comments: newComments,
+          body: PR_REVIEW_BODY,
+          event: 'COMMENT',
+        });
+      }
     } else {
-      const { data: reviews } = await context.octokit.pulls.listReviews({ repo, pull_number, owner });
-      core.info('PR Reviews: ' + JSON.stringify(reviews, null, 2));
-      const containsReviewFromMe = reviews.filter(review => review.body === PR_REVIEW_BODY).length > 0;
       if (containsReviewFromMe) {
         return context.octokit.pulls.createReview({
           owner,
