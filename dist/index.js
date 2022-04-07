@@ -100387,6 +100387,7 @@ module.exports = (app) => {
         const filesWithErrors = results.filter(result => result.messages.length > 0);
         const totalErrors = filesWithErrors.map(file => file.messages.length).reduce((prev, cur) => prev + cur, 0);
         if (totalErrors > 0) {
+            core.warning(`Found ${totalErrors} linter hints in the changed code.`);
             const comments = filesWithErrors.flatMap(file => file.messages.map(message => ({
                 path: normalizeFilename(file.filePath),
                 body: `${formatRuleName(message.ruleId)}: ${message.message}`,
