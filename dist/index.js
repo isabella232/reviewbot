@@ -100333,9 +100333,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(42186));
 const child_process_1 = __nccwpck_require__(32081);
+const path_1 = __importDefault(__nccwpck_require__(71017));
 function exec(command) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => (0, child_process_1.exec)(command, (error, stdout, stderr) => error
@@ -100354,12 +100358,8 @@ function lintDiff(baseSha, headSha, prefix) {
 }
 const PR_REVIEW_BODY = 'Hey there! This is the automated PR review service. '
     + ' I have found some issues with the changes you made to JavaScript/TypeScript files.';
-function normalizeFilename(filename, prefix) {
-    const cwd = process.cwd();
-    const strippedFilename = filename.startsWith(cwd) ? filename.slice(cwd.length + 1) : filename;
-    return prefix !== ''
-        ? `${prefix}/${strippedFilename}`
-        : strippedFilename;
+function normalizeFilename(filename) {
+    return path_1.default.relative(process.cwd(), filename);
 }
 module.exports = (app) => {
     app.on(["pull_request.opened", "pull_request.synchronize"], (context) => __awaiter(void 0, void 0, void 0, function* () {
@@ -100374,7 +100374,7 @@ module.exports = (app) => {
         const filesWithErrors = results.filter(result => result.messages.length > 0);
         if (filesWithErrors.length > 0) {
             const comments = filesWithErrors.flatMap(file => file.messages.map(message => ({
-                path: normalizeFilename(file.filePath, prefix),
+                path: normalizeFilename(file.filePath),
                 body: `${message.ruleId}: ${message.message}`,
                 line: message.line
             })));

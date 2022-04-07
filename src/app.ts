@@ -4,6 +4,7 @@
 import type { Probot } from 'probot';
 import * as core from '@actions/core';
 import { exec as childExec } from 'child_process';
+import path from 'path';
 
 type Message = {
   "ruleId": string,
@@ -38,12 +39,8 @@ async function lintDiff(baseSha: string, headSha: string, prefix: string): Promi
 const PR_REVIEW_BODY = 'Hey there! This is the automated PR review service. '
   + ' I have found some issues with the changes you made to JavaScript/TypeScript files.';
 
-function normalizeFilename(filename: string, prefix: string) {
-  const cwd = process.cwd();
-  const strippedFilename = filename.startsWith(cwd) ? filename.slice(cwd.length + 1) : filename;
-  return prefix !== ''
-    ? `${prefix}/${strippedFilename}`
-    : strippedFilename;
+function normalizeFilename(filename: string) {
+  return path.relative(process.cwd(), filename);
 }
 
 module.exports = (app: Probot) => {
@@ -59,7 +56,7 @@ module.exports = (app: Probot) => {
     const filesWithErrors = results.filter(result => result.messages.length > 0);
     if (filesWithErrors.length > 0) {
       const comments = filesWithErrors.flatMap(file => file.messages.map(message => ({
-        path: normalizeFilename(file.filePath, prefix),
+        path: normalizeFilename(file.filePath),
         body: `${message.ruleId}: ${message.message}`,
         line: message.line
       })));
