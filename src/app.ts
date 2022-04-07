@@ -22,11 +22,15 @@ type File = {
 }
 
 async function exec(command: string) {
-  return new Promise<string>((resolve, reject) => childExec(command, (error, stdout, stderr) => error ? reject(stderr) : resolve(stdout)));
+  return new Promise<string>((resolve, reject) => childExec(command, (error, stdout, stderr) => error
+    ? reject(`Command execution failed: ${stderr}`) 
+    : resolve(stdout)));
 }
 
 async function lintDiff(baseSha: string, headSha: string, prefix: string): Promise<Array<File>> {
-  const result = await exec(`git diff --name-only --diff-filter=ACMR ${baseSha}..${headSha} | grep -E '^${prefix}/(.*).[jt]s(x)?$'|sed 's,^${prefix}/,,'|xargs yarn -s eslint -f json`);
+  const cmd = `git diff --name-only --diff-filter=ACMR ${baseSha}..${headSha} | grep -E '^${prefix}/(.*).[jt]s(x)?$'|sed 's,^${prefix}/,,'|xargs yarn -s eslint -f json`;
+  core.info(`Executing command: ${cmd}`);
+  const result = await exec(cmd);
   core.info(`Linter result is: ${result}`);
   return JSON.parse(result) as Array<File>;
 }
