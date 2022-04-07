@@ -100361,7 +100361,7 @@ const makeRuleNameWithUrl = (ruleName, url) => `[${ruleName}](${url})`;
 const formatRuleName = (ruleName) => {
     const splittedRuleName = ruleName.split('/');
     if (splittedRuleName.length === 1) {
-        makeRuleNameWithUrl(ruleName, `https://eslint.org/docs/rules/${ruleName}`);
+        return makeRuleNameWithUrl(ruleName, `https://eslint.org/docs/rules/${ruleName}`);
     }
     const [domain, ruleId] = splittedRuleName;
     switch (domain) {
