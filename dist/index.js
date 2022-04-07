@@ -100385,7 +100385,8 @@ module.exports = (app) => {
         });
         const results = yield lintDiff(baseSha, headSha, prefix);
         const filesWithErrors = results.filter(result => result.messages.length > 0);
-        if (filesWithErrors.length > 0) {
+        const totalErrors = filesWithErrors.map(file => file.messages.length).reduce((prev, cur) => prev + cur, 0);
+        if (totalErrors > 0) {
             const comments = filesWithErrors.flatMap(file => file.messages.map(message => ({
                 path: normalizeFilename(file.filePath),
                 body: `${formatRuleName(message.ruleId)}: ${message.message}`,
@@ -100402,6 +100403,7 @@ module.exports = (app) => {
         }
         else {
             const { data: reviews } = yield context.octokit.pulls.listReviews({ repo, pull_number, owner });
+            core.info('PR Reviews: ' + JSON.stringify(reviews, null, 2));
             const containsReviewFromMe = reviews.filter(review => review.body === PR_REVIEW_BODY).length > 0;
             if (containsReviewFromMe) {
                 return context.octokit.pulls.createReview({
