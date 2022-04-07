@@ -1,7 +1,7 @@
 /**
  * @param {import('probot').Probot} app
  */
-import { Probot } from 'probot';
+import type { Probot } from 'probot';
 import * as core from '@actions/core';
 import { exec as childExec } from 'child_process';
 
@@ -41,7 +41,7 @@ function normalizeFilename(filename: string, prefix: string) {
     : strippedFilename;
 }
 
-exports = (app: Probot) => {
+module.exports = (app: Probot) => {
   app.on(["pull_request.opened", "pull_request.synchronize"], async (context) => {
     const prefix = core.getInput('prefix', { required: true });
     const { owner, repo, pull_number } = await context.pullRequest();

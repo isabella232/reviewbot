@@ -100297,7 +100297,7 @@ try {
 /***/ }),
 
 /***/ 90396:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ (function(module, exports, __nccwpck_require__) {
 
 "use strict";
 
@@ -100356,7 +100356,7 @@ function normalizeFilename(filename, prefix) {
         ? `${prefix}/${strippedFilename}`
         : strippedFilename;
 }
-exports = (app) => {
+module.exports = (app) => {
     app.on(["pull_request.opened", "pull_request.synchronize"], (context) => __awaiter(void 0, void 0, void 0, function* () {
         const prefix = core.getInput('prefix', { required: true });
         const { owner, repo, pull_number } = yield context.pullRequest();
