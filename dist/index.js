@@ -100372,15 +100372,23 @@ const formatRuleName = (ruleName) => {
     }
     return ruleName;
 };
+const shouldBeSkipped = (body) => body
+    ? (body.includes('[review skip]')
+        || body.includes('[no review]')
+        || body.includes('[skip review]'))
+    : false;
 module.exports = (app) => {
     app.on(["pull_request.opened", "pull_request.synchronize"], (context) => __awaiter(void 0, void 0, void 0, function* () {
         const prefix = core.getInput('prefix', { required: true });
         const { owner, repo, pull_number } = yield context.pullRequest();
-        const { data: { base: { sha: baseSha }, head: { sha: headSha } } } = yield context.octokit.pulls.get({
+        const { data: { body, base: { sha: baseSha }, head: { sha: headSha } } } = yield context.octokit.pulls.get({
             owner,
             repo,
             pull_number,
         });
+        if (shouldBeSkipped(body)) {
+            return;
+        }
         const results = yield lintDiff(baseSha, headSha, prefix);
         const filesWithErrors = results.filter(result => result.messages.length > 0);
         const totalErrors = filesWithErrors.map(file => file.messages.length).reduce((prev, cur) => prev + cur, 0);

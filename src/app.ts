@@ -58,15 +58,26 @@ const formatRuleName = (ruleName: string) => {
   return ruleName;
 }
 
+const shouldBeSkipped = (body: string | null) => body 
+  ? (body.includes('[review skip]')
+    || body.includes('[no review]')
+    || body.includes('[skip review]'))
+  : false;
+
 module.exports = (app: Probot) => {
   app.on(["pull_request.opened", "pull_request.synchronize"], async (context) => {
     const prefix = core.getInput('prefix', { required: true });
     const { owner, repo, pull_number } = await context.pullRequest();
-    const { data: { base: { sha: baseSha }, head: { sha: headSha } } } = await context.octokit.pulls.get({
+    const { data: { body, base: { sha: baseSha }, head: { sha: headSha } } } = await context.octokit.pulls.get({
       owner,
       repo,
       pull_number,
     });
+
+    if (shouldBeSkipped(body)) {
+      return;
+    }
+    
     const results = await lintDiff(baseSha, headSha, prefix);
     const filesWithErrors = results.filter(result => result.messages.length > 0);
     const totalErrors = filesWithErrors.map(file => file.messages.length).reduce((prev, cur) => prev + cur, 0);
